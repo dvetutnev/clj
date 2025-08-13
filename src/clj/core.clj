@@ -16,10 +16,10 @@
 
 (loop [root 1]
   (if (nil? root)
-    (println 42)
+    (inc  42)
     (let [{:keys [value left right]} (tree root)
           cmp-res (compare nv value)]
       (cond
-        (< cmp-res 0) (recur [left])
-        (> cmp-res 0) (recur [right])
+        (< cmp-res 0) (recur left)
+        (> cmp-res 0) (recur right)
         :else nil))))
