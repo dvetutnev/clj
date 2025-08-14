@@ -9,18 +9,23 @@
 (defrecord Node [value child left right])
 (def tree {0 (Node. "Root" 1 nil nil)
            1 (Node. "B" nil 2 3)
-           4 (Node. "A" nil nil nil)
+           2 (Node. "A" nil nil nil)
            3 (Node. "C" nil nil nil)})
 (def nv "D")
-(def new-node (map->Node {:value "D"}))
+;(def new-node (map->Node {:value "D"}))
 
-(loop [root 1]
-  (if (nil? root)
-    (let [new-key (inc (last (sort (keys tree))))]
-      (assoc tree  new-key new-node))
-    (let [{:keys [value left right]} (tree root)
-          cmp-res (compare (:value new-node) value)]
-      (cond
-        (< cmp-res 0) (recur left)
-        (> cmp-res 0) (recur right)
-        :else nil))))
+(defn insert-in-tree []
+  (loop [root-id 1
+         parent-id nil
+         direction nil]
+    (if (nil? root-id)
+      (let [new-key (inc (last (sort (keys tree))))
+            new-node (map->Node {:value nv})
+            updated-parent-node (assoc (tree parent-id) direction new-key)]
+        (assoc (assoc tree parent-id updated-parent-node) new-key new-node))
+      (let [{:keys [value left right]} (tree root-id)
+            cmp-res (compare nv value)]
+        (cond
+          (< cmp-res 0) (recur left root-id :left)
+          (> cmp-res 0) (recur right root-id :right)
+          :else nil)))))
