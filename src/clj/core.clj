@@ -13,8 +13,8 @@
                 (->Node "C" nil nil nil)]);3
 (def nv "D")
 
-(defn insert-in-tree []
-  (loop [root-id 1
+(defn insert-in-tree [directory root-id nv]
+  (loop [root-id root-id
          parent-id nil
          direction nil]
     (if (nil? root-id)
