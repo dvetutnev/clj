@@ -20,8 +20,8 @@
     (if (nil? root-id)
       (let [new-key (count directory)
             new-node (map->Node {:value nv})
-            updated-parent-node (assoc (nth directory parent-id) direction new-key)]
-        (assoc (assoc directory parent-id updated-parent-node) new-key new-node))
+            upd-parent-node (assoc (nth directory parent-id) direction new-key)]
+        (assoc (assoc directory parent-id upd-parent-node) new-key new-node))
       (let [{:keys [value left right]} (directory root-id)
             cmp-res (compare nv value)]
         (cond
