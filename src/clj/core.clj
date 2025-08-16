@@ -28,3 +28,8 @@
           (< cmp-res 0) (recur left root-id :left)
           (> cmp-res 0) (recur right root-id :right)
           :else nil)))))
+
+(defn insert-in-storage [directory storage-id nv]
+  (let [storage (nth directory storage-id)
+        root-id (:child storage)]
+    (insert-in-tree directory root-id nv)))
