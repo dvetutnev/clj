@@ -33,8 +33,6 @@
           (> cmp-res 0) (recur right root-id :right)
           :else nil)))))
 
-(def edir [(->Node "Root" nil nil nil)])
-
 (defn insert-in-storage [directory storage-id nv]
   (let [storage (nth directory storage-id)
         root-id (:child storage)]
@@ -43,5 +41,6 @@
         (add-node directory storage-id :child new-node))
       (insert-in-tree directory root-id nv))))
 
+(def edir [(->Node "Root" nil nil nil)])
 (def edirc (insert-in-storage edir 0 nv))
 (def nv2 "B")
