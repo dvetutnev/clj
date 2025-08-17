@@ -21,7 +21,7 @@
       (let [new-key (count directory)
             new-node (map->Node {:value nv})
             upd-parent-node (assoc (nth directory parent-id) direction new-key)]
-        (assoc (assoc directory parent-id upd-parent-node) new-key new-node))
+        (conj (assoc directory parent-id upd-parent-node) new-node))
       (let [{:keys [value left right]} (directory root-id)
             cmp-res (compare nv value)]
         (cond
@@ -38,5 +38,8 @@
       (let [new-key (count directory)
             new-node (map->Node {:value nv})
             upd-storage-node (assoc (nth directory storage-id) :child new-key)]
-        (assoc (assoc directory storage-id upd-storage-node) new-key new-node))
+        (conj (assoc directory storage-id upd-storage-node) new-node))
       (insert-in-tree directory root-id nv))))
+
+(def edirc (insert-in-storage edir 0 nv))
+(def nv2 "B")
