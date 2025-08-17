@@ -29,7 +29,14 @@
           (> cmp-res 0) (recur right root-id :right)
           :else nil)))))
 
+(def edir [(->Node "Root" nil nil nil)])
+
 (defn insert-in-storage [directory storage-id nv]
   (let [storage (nth directory storage-id)
         root-id (:child storage)]
-    (insert-in-tree directory root-id nv)))
+    (if (nil? root-id)
+      (let [new-key (count directory)
+            new-node (map->Node {:value nv})
+            upd-storage-node (assoc (nth directory storage-id) :child new-key)]
+        (assoc (assoc directory storage-id upd-storage-node) new-key new-node))
+      (insert-in-tree directory root-id nv))))
