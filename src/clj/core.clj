@@ -6,13 +6,6 @@
   [& args]
   (println "Hello, World!"))
 
-(defrecord Node [value child left right])
-(def directory [(->Node "Root" 1 nil nil) ;0
-                (->Node "B" nil 2 3)      ;1
-                (->Node "A" nil nil nil)  ;2
-                (->Node "C" nil nil nil)]);3
-(def nv "D")
-
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
         parent-node (nth directory parent-id)
@@ -40,6 +33,13 @@
       (let [new-node (map->Node {:value nv})]
         (add-node directory storage-id :child new-node))
       (insert-in-tree directory root-id nv))))
+
+(defrecord Node [value child left right])
+(def directory [(->Node "Root" 1 nil nil) ;0
+                (->Node "B" nil 2 3)      ;1
+                (->Node "A" nil nil nil)  ;2
+                (->Node "C" nil nil nil)]);3
+(def nv "D")
 
 (def edir [(->Node "Root" nil nil nil)])
 (def edirc (insert-in-storage edir 0 nv))
