@@ -13,15 +13,19 @@
                 (->Node "C" nil nil nil)]);3
 (def nv "D")
 
+(defn add-node [directory parent-id direction node]
+  (let [new-id (count directory)
+        parent-node (nth directory parent-id)
+        upd-parent-node (assoc parent-node direction new-id)]
+    (conj (assoc directory parent-id upd-parent-node) node)))
+
 (defn insert-in-tree [directory root-id nv]
   (loop [root-id root-id
          parent-id nil
          direction nil]
     (if (nil? root-id)
-      (let [new-key (count directory)
-            new-node (map->Node {:value nv})
-            upd-parent-node (assoc (nth directory parent-id) direction new-key)]
-        (conj (assoc directory parent-id upd-parent-node) new-node))
+      (let [new-node (map->Node {:value nv})]
+        (add-node directory parent-id direction new-node))
       (let [{:keys [value left right]} (directory root-id)
             cmp-res (compare nv value)]
         (cond
@@ -35,10 +39,8 @@
   (let [storage (nth directory storage-id)
         root-id (:child storage)]
     (if (nil? root-id)
-      (let [new-key (count directory)
-            new-node (map->Node {:value nv})
-            upd-storage-node (assoc (nth directory storage-id) :child new-key)]
-        (conj (assoc directory storage-id upd-storage-node) new-node))
+      (let [new-node (map->Node {:value nv})]
+        (add-node directory storage-id :child new-node))
       (insert-in-tree directory root-id nv))))
 
 (def edirc (insert-in-storage edir 0 nv))
