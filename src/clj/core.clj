@@ -47,11 +47,8 @@
 
 (def nn2 (map->Node {:name "B" :type :storage}))
 
-(defn fred [dir storage-id nv]
-  [(str dir nv)
-   (inc storage-id)])
-
-(defn add-path [path]
+(defn add-path [directory path]
   (reduce (fn [[directory storage-id] path-comp]
-            (fred directory storage-id path-comp))
-          ["Root" 42] path))
+            (let [node (map->Node {:name path-comp :type :storage})]
+              (insert-in-storage directory storage-id node)))
+          [directory 0] path))
