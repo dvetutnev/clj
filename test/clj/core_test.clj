@@ -2,6 +2,41 @@
   (:require [clojure.test :refer :all]
             [clj.core :refer :all]))
 
-(deftest test-add-path
-  (let [[_ last-id] (add-path edir ["a" "b" "c"])]
-    (is (= 3 last-id))))
+(deftest test-add-nodes-path
+  (let [empty-dir [(map->Node {:name "Root" :type :storage})]
+        path [(map->Node {:name "B" :type :storage})
+              (map->Node {:name "C" :type :storage})
+              (map->Node {:name "Stream" :type :stream})]]
+    (testing "One path"
+      (let [expected [(map->Node {:name "Root" :type :storage :child 1})
+                      (map->Node {:name "B" :type :storage :child 2})
+                      (map->Node {:name "C" :type :storage :child 3})
+                      (map->Node {:name "Stream" :type :stream :child nil})]
+            [dir last-id] (add-nodes-path empty-dir path)]
+        (is (= 3 last-id))
+        (is (= expected dir))))
+    (testing "Two path"
+      (let [path2 [(map->Node {:name "B" :type :storage})
+                   (map->Node {:name "D" :type :storage})
+                   (map->Node {:name "AStream" :type :stream})]
+            expected [(map->Node {:name "Root" :type :storage :child 1})
+                      (map->Node {:name "B" :type :storage :child 2})
+                      (map->Node {:name "C" :type :storage :child 3 :right 4})
+                      (map->Node {:name "Stream" :type :stream :child nil})
+                      (map->Node {:name "D" :type :storage :child 5})
+                      (map->Node {:name "AStream" :type :stream :child nil})]
+            [dir* _] (add-nodes-path empty-dir path)
+            [dir last-id] (add-nodes-path dir* path2)]
+        (is (= 5 last-id))
+        (is (= expected dir))))
+    (testing "Two path (left)"
+      (let [path2 [(map->Node {:name "A" :type :stream})]
+            expected [(map->Node {:name "Root" :type :storage :child 1})
+                      (map->Node {:name "B" :type :storage :child 2 :left 4})
+                      (map->Node {:name "C" :type :storage :child 3})
+                      (map->Node {:name "Stream" :type :stream :child nil})
+                      (map->Node {:name "A" :type :stream})]
+            [dir* _] (add-nodes-path empty-dir path)
+            [dir last-id] (add-nodes-path dir* path2)]
+        (is (= 4 last-id))
+        (is (= expected dir))))))
