@@ -1,4 +1,5 @@
 (ns clj.core
+  (:import (java.nio ByteBuffer ByteOrder))
   (:gen-class))
 
 (defn -main
@@ -39,3 +40,9 @@
   (reduce (fn [[directory storage-id] node]
             (insert-in-storage directory storage-id node))
           [directory 0] path))
+
+(defn int-to-bytes [^long n]
+  (let [^ByteBuffer buffer (ByteBuffer/allocate 4)]
+    (.order buffer ByteOrder/LITTLE_ENDIAN)
+    (.putInt buffer n)
+    (.array buffer)))
