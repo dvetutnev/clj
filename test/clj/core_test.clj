@@ -40,3 +40,7 @@
             [dir last-id] (add-nodes-path dir* path2)]
         (is (= 4 last-id))
         (is (= expected dir))))))
+
+(deftest test-make-proto-fat
+  (let [fat (make-proto-fat [1 2 3])]
+    (is (= [ENDOFCHAIN 2 ENDOFCHAIN 4 5 ENDOFCHAIN] fat))))

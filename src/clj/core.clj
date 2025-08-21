@@ -46,3 +46,18 @@
     (.order buffer ByteOrder/LITTLE_ENDIAN)
     (.putInt buffer n)
     (.array buffer)))
+
+(defn gen [n]
+  (cons n (lazy-seq (gen (inc n)))))
+
+(def ENDOFCHAIN 0xFFFFFFFE)
+
+(defn make-fat-chain [start length]
+  (let [head (take (dec length) (gen (inc start)))]
+    (concat head [ENDOFCHAIN])))
+
+(defn make-proto-fat [lengths]
+  (reduce (fn [acc length]
+            (let [chain (make-fat-chain (count acc) length)]
+              (concat acc chain)))
+          () lengths))
