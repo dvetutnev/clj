@@ -55,7 +55,9 @@
     (concat (range start end) [ENDOFCHAIN])))
 
 (defn make-proto-fat [lengths]
-  (reduce (fn [acc length]
-            (let [chain (make-fat-chain (count acc) length)]
-              (concat acc chain)))
-          () lengths))
+  (reduce (fn [[starts fat] length]
+            (let [starts (conj starts (count fat))
+                  chain (make-fat-chain (count fat) length)
+                  fat (concat fat chain)]
+              [starts fat]))
+          [[] ()] lengths))

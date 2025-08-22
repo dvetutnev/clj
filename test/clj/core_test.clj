@@ -42,5 +42,6 @@
         (is (= expected dir))))))
 
 (deftest test-make-proto-fat
-  (let [fat (make-proto-fat [1 2 3])]
+  (let [[starts fat] (make-proto-fat [1 2 3])]
+    (is (= [0 1 3] starts))
     (is (= [ENDOFCHAIN 2 ENDOFCHAIN 4 5 ENDOFCHAIN] fat))))
