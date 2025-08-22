@@ -47,14 +47,12 @@
     (.putInt buffer n)
     (.array buffer)))
 
-(defn gen [n]
-  (cons n (lazy-seq (gen (inc n)))))
-
 (def ENDOFCHAIN 0xFFFFFFFE)
 
 (defn make-fat-chain [start length]
-  (let [head (take (dec length) (gen (inc start)))]
-    (concat head [ENDOFCHAIN])))
+  (let [start (inc start)
+        end (+ start (dec length))]
+    (concat (range start end) [ENDOFCHAIN])))
 
 (defn make-proto-fat [lengths]
   (reduce (fn [acc length]
