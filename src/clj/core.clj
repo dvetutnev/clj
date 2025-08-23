@@ -1,4 +1,5 @@
 (ns clj.core
+  (:require [clojure.math :as math])
   (:import (java.nio ByteBuffer ByteOrder))
   (:gen-class))
 
@@ -48,6 +49,8 @@
     (.array buffer)))
 
 (def ENDOFCHAIN 0xFFFFFFFE)
+(def FREESEC 0xFFFFFFFF)
+(def FATSEC 0xFFFFFFFD)
 
 (defn make-fat-chain [start length]
   (let [start (inc start)
@@ -61,3 +64,18 @@
                   fat (concat fat chain)]
               [starts fat]))
           [[] ()] lengths))
+
+(def SectorSize 512)
+(def u32size 4)
+(def fat-entry-peer-sector (/ SectorSize u32size))
+
+(defn make-fat [proto-fat]
+  (loop [num-fat-sector (math/floor-div (count proto-fat) fat-entry-peer-sector)]
+    (if (> (+ num-fat-sector (count proto-fat))
+           (* num-fat-sector fat-entry-peer-sector))
+      (recur (inc num-fat-sector))
+      (let [num-pad-entry (- (* num-fat-sector fat-entry-peer-sector)
+                             (+ num-fat-sector (count proto-fat)))]
+        (concat proto-fat
+                (int-array num-pad-entry FREESEC)
+                (int-array num-fat-sector FATSEC))))))
