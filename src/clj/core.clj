@@ -83,5 +83,5 @@
       (let [num-pad-entry (- (* num-fat-sector fat-entry-peer-sector)
                              (+ num-fat-sector (count proto-fat)))]
         (concat proto-fat
-                (int-array num-pad-entry FREESEC)
-                (int-array num-fat-sector FATSEC))))))
+                (long-array num-pad-entry FREESEC)
+                (long-array num-fat-sector FATSEC))))))

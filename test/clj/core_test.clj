@@ -51,8 +51,16 @@
   (is (= 1 (calc-num-sector SectorSize)))
   (is (= 2 (calc-num-sector (+ SectorSize 1)))))
 
-(deftest test-make-proto-fat
+(deftest test-make-fat
   (testing "Simple"
-    (let [proto-fat (range 127)
-          fat (make-fat proto-fat)]
-      (is (= 128 (count fat))))))
+    (let [fat (make-fat (range 127))
+          tail (last fat)]
+      (is (= 128 (count fat)))
+      (is (= FATSEC tail))))
+  (testing "300"
+    (let [fat (vec (make-fat (range 300)))
+          padsec (subvec fat 300 381)
+          fatsec (subvec fat 381)]
+      (is (= 384 (count fat)))
+      (is (= (vec (long-array 81 FREESEC)) padsec))
+      (is (= (vec (long-array 3 FATSEC)) fatsec)))))
