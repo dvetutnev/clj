@@ -69,6 +69,12 @@
 (def u32size 4)
 (def fat-entry-peer-sector (/ SectorSize u32size))
 
+(defn calc-num-sector [length]
+  (let [num-full-sector (math/floor-div length SectorSize)]
+    (if (= (mod length SectorSize) 0)
+      num-full-sector
+      (inc num-full-sector))))
+
 (defn make-fat [proto-fat]
   (loop [num-fat-sector (math/floor-div (count proto-fat) fat-entry-peer-sector)]
     (if (> (+ num-fat-sector (count proto-fat))

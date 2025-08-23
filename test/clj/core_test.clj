@@ -46,6 +46,11 @@
     (is (= [0 1 3] starts))
     (is (= [ENDOFCHAIN 2 ENDOFCHAIN 4 5 ENDOFCHAIN] fat))))
 
+(deftest test-calc-num-sector
+  (is (= 1 (calc-num-sector (- SectorSize 1))))
+  (is (= 1 (calc-num-sector SectorSize)))
+  (is (= 2 (calc-num-sector (+ SectorSize 1)))))
+
 (deftest test-make-proto-fat
   (testing "Simple"
     (let [proto-fat (range 127)
