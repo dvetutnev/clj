@@ -57,6 +57,13 @@
           tail (last fat)]
       (is (= 128 (count fat)))
       (is (= FATSEC tail))))
+  (testing "Expand"
+    (let [fat (vec (make-fat (range 128)))
+          padsec (subvec fat 128 254)
+          fatsec (subvec fat 254)]
+      (is (= 256 (count fat)))
+      (is (= (vec (long-array 126 FREESEC)) padsec))
+      (is (= (vec (long-array 2 FATSEC)) fatsec))))
   (testing "300"
     (let [fat (vec (make-fat (range 300)))
           padsec (subvec fat 300 381)
