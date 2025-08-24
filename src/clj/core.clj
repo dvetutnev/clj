@@ -75,6 +75,12 @@
       num-full-sector
       (inc num-full-sector))))
 
+(defn calc-padding [size]
+  (let [m (mod size SectorSize)]
+    (if (= m 0)
+      0
+      (- SectorSize m))))
+
 (defn make-fat [proto-fat]
   (loop [num-fat-sector (calc-num-sector (* (count proto-fat) u32size))]
     (if (> (+ num-fat-sector (count proto-fat))

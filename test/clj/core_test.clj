@@ -71,3 +71,8 @@
       (is (= 384 (count fat)))
       (is (= (vec (long-array 81 FREESEC)) padsec))
       (is (= (vec (long-array 3 FATSEC)) fatsec)))))
+
+(deftest test-calc-padding
+  (is (= 12 (calc-padding 500)))
+  (is (= 0 (calc-padding 1024)))
+  (is (= 24 (calc-padding 1000))))
