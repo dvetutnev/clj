@@ -1,5 +1,6 @@
 (ns clj.core
-  (:require [clojure.math :as math])
+  (:require [clojure.math :as math]
+            [clojure.java.io :as io])
   (:import (java.nio ByteBuffer ByteOrder))
   (:gen-class))
 
@@ -7,6 +8,14 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println "Hello, World!"))
+
+(def SectorSize 512)
+
+(defn calc-padding [size]
+  (let [m (mod size SectorSize)]
+    (if (= m 0)
+      0
+      (- SectorSize m))))
 
 (defrecord Node [name child left right type])
 
@@ -48,6 +57,10 @@
     (.putInt buffer n)
     (.array buffer)))
 
+(defn write-to-file [path arr]
+  (with-open [out (io/output-stream path)]
+    (.write out arr)))
+
 (def ENDOFCHAIN 0xFFFFFFFE)
 (def FREESEC 0xFFFFFFFF)
 (def FATSEC 0xFFFFFFFD)
@@ -65,7 +78,6 @@
               [starts fat]))
           [[] ()] lengths))
 
-(def SectorSize 512)
 (def u32size 4)
 (def fat-entry-peer-sector (/ SectorSize u32size))
 
@@ -74,12 +86,6 @@
     (if (= (mod length SectorSize) 0)
       num-full-sector
       (inc num-full-sector))))
-
-(defn calc-padding [size]
-  (let [m (mod size SectorSize)]
-    (if (= m 0)
-      0
-      (- SectorSize m))))
 
 (defn make-fat [proto-fat]
   (loop [num-fat-sector (calc-num-sector (* (count proto-fat) u32size))]
