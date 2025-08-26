@@ -12,6 +12,9 @@
 
 (def SectorSize 512)
 
+(def strm1 (byte-array (+ 1 (* 7 SectorSize)) (byte \A)))
+(def strm2 (byte-array (* 8 SectorSize) (byte \B)))
+
 (def ENDOFCHAIN 0xFFFFFFFE)
 (def FREESEC 0xFFFFFFFF)
 (def FATSEC 0xFFFFFFFD)
