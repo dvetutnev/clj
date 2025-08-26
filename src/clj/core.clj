@@ -45,8 +45,8 @@
           [[] ()] sizes))
 
 (defn make-cfb [streams]
-  (let [proto-fat (make-proto-fat (map (comp count last) streams))]
-    proto-fat))
+  (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))]
+    [starts proto-fat]))
 
 (defrecord Node [name child left right type])
 
