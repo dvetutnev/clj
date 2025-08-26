@@ -22,18 +22,24 @@
       0
       (- SectorSize m))))
 
+(defn calc-num-sector [length]
+  (let [num-full-sector (math/floor-div length SectorSize)]
+    (if (= (mod length SectorSize) 0)
+      num-full-sector
+      (inc num-full-sector))))
+
 (defn make-fat-chain [start length]
   (let [start (inc start)
         end (+ start (dec length))]
     (concat (range start end) [ENDOFCHAIN])))
 
-(defn make-proto-fat [lengths]
-  (reduce (fn [[starts fat] length]
+(defn make-proto-fat [sizes]
+  (reduce (fn [[starts fat] size]
             (let [starts (conj starts (count fat))
-                  chain (make-fat-chain (count fat) length)
+                  chain (make-fat-chain (count fat) (calc-num-sector size))
                   fat (concat fat chain)]
               [starts fat]))
-          [[] ()] lengths))
+          [[] ()] sizes))
 
 (defrecord Node [name child left right type])
 
@@ -81,12 +87,6 @@
 
 (def u32size 4)
 (def fat-entry-peer-sector (/ SectorSize u32size))
-
-(defn calc-num-sector [length]
-  (let [num-full-sector (math/floor-div length SectorSize)]
-    (if (= (mod length SectorSize) 0)
-      num-full-sector
-      (inc num-full-sector))))
 
 (defn make-fat [proto-fat]
   (loop [num-fat-sector (calc-num-sector (* (count proto-fat) u32size))]

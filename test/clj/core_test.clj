@@ -42,7 +42,7 @@
         (is (= expected dir))))))
 
 (deftest test-make-proto-fat
-  (let [[starts fat] (make-proto-fat [1 2 3])]
+  (let [[starts fat] (make-proto-fat [SectorSize (* 2 SectorSize) (* 3 SectorSize)])]
     (is (= [0 1 3] starts))
     (is (= [ENDOFCHAIN 2 ENDOFCHAIN 4 5 ENDOFCHAIN] fat))))
 
