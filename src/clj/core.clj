@@ -1,5 +1,6 @@
 (ns clj.core
   (:require [clojure.math :as math]
+            [clojure.string :as string]
             [clojure.java.io :as io])
   (:import (java.nio ByteBuffer ByteOrder))
   (:gen-class))
