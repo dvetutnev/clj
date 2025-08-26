@@ -44,11 +44,15 @@
               [starts fat]))
           [[] ()] sizes))
 
+(defrecord Node [name child left right type])
+
+(defn make-nodes-path [path size start])
+
+(defn make-directory [streams starts])
+
 (defn make-cfb [streams]
   (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))]
     [starts proto-fat]))
-
-(defrecord Node [name child left right type])
 
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
