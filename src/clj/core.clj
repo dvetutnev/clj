@@ -12,11 +12,28 @@
 
 (def SectorSize 512)
 
+(def ENDOFCHAIN 0xFFFFFFFE)
+(def FREESEC 0xFFFFFFFF)
+(def FATSEC 0xFFFFFFFD)
+
 (defn calc-padding [size]
   (let [m (mod size SectorSize)]
     (if (= m 0)
       0
       (- SectorSize m))))
+
+(defn make-fat-chain [start length]
+  (let [start (inc start)
+        end (+ start (dec length))]
+    (concat (range start end) [ENDOFCHAIN])))
+
+(defn make-proto-fat [lengths]
+  (reduce (fn [[starts fat] length]
+            (let [starts (conj starts (count fat))
+                  chain (make-fat-chain (count fat) length)
+                  fat (concat fat chain)]
+              [starts fat]))
+          [[] ()] lengths))
 
 (defrecord Node [name child left right type])
 
@@ -61,23 +78,6 @@
 (defn write-to-file [path arr]
   (with-open [out (io/output-stream path)]
     (.write out arr)))
-
-(def ENDOFCHAIN 0xFFFFFFFE)
-(def FREESEC 0xFFFFFFFF)
-(def FATSEC 0xFFFFFFFD)
-
-(defn make-fat-chain [start length]
-  (let [start (inc start)
-        end (+ start (dec length))]
-    (concat (range start end) [ENDOFCHAIN])))
-
-(defn make-proto-fat [lengths]
-  (reduce (fn [[starts fat] length]
-            (let [starts (conj starts (count fat))
-                  chain (make-fat-chain (count fat) length)
-                  fat (concat fat chain)]
-              [starts fat]))
-          [[] ()] lengths))
 
 (def u32size 4)
 (def fat-entry-peer-sector (/ SectorSize u32size))
