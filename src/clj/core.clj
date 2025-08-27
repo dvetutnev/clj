@@ -51,8 +51,14 @@
         head (map #(map->Node {:name % :type :storage}) (drop-last path*))
         tail (map->Node {:name (last path*) :type :stream :size size :start start})]
     (concat head (list tail))))
+(defn add-nodes-path [directory path])
 
-(defn make-directory [streams starts])
+(defn make-directory [items]
+  (reduce (fn [directory [path size start]]
+            (let [path* (make-nodes-path path size start)
+                  [dir _] (add-nodes-path directory path*)]
+              dir))
+          [(map->Node {:name "Root Entry" :type :storage})] items))
 
 (defn make-cfb [streams]
   (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))]
