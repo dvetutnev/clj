@@ -44,9 +44,13 @@
               [starts fat]))
           [[] ()] sizes))
 
-(defrecord Node [name child left right type])
+(defrecord Node [name child left right type size start])
 
-(defn make-nodes-path [path size start])
+(defn make-nodes-path [path size start]
+  (let [path* (string/split path #"/")
+        head (map #(map->Node {:name % :type :storage}) (drop-last path*))
+        tail (map->Node {:name (last path*) :type :stream :size size :start start})]
+    (concat head (list tail))))
 
 (defn make-directory [streams starts])
 
