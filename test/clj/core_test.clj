@@ -2,6 +2,19 @@
   (:require [clojure.test :refer :all]
             [clj.core :refer :all]))
 
+(deftest test-make-directory
+  (let [expected [(map->Node {:name "Root Entry" :type :storage :child 1})
+                  (map->Node {:name "B" :type :storage :child 2 :left 6})
+                  (map->Node {:name "C" :type :storage :child 3 :right 4})
+                  (map->Node {:name "Stream" :type :stream :size 4095 :start 0})
+                  (map->Node {:name "D" :type :storage :child 5})
+                  (map->Node {:name "Stream" :type :stream :size 4096 :start 8})
+                  (map->Node {:name "AStream" :type :stream :size 4097 :start 16})]
+        directory (make-directory [["B/C/Stream" 4095 0]
+                                   ["B/D/Stream" 4096 8]
+                                   ["AStream" 4097 16]])]
+    (is (= expected directory))))
+
 (deftest test-add-nodes-path
   (let [empty-dir [(map->Node {:name "Root" :type :storage})]
         path [(map->Node {:name "B" :type :storage})
