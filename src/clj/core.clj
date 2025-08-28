@@ -55,9 +55,8 @@
 
 (defn make-directory [items]
   (reduce (fn [directory [path size start]]
-            (let [path* (make-nodes-path path size start)
-                  [dir _] (add-nodes-path directory path*)]
-              dir))
+            (let [path* (make-nodes-path path size start)]
+              (add-nodes-path directory path*)))
           [(map->Node {:name "Root Entry" :type :storage})] items))
 
 (defn make-cfb [streams]
@@ -92,9 +91,10 @@
       (insert-in-tree directory root-id node))))
 
 (defn add-nodes-path [directory path]
-  (reduce (fn [[directory storage-id] node]
-            (insert-in-storage directory storage-id node))
-          [directory 0] path))
+  (let [[directory _] (reduce (fn [[directory storage-id] node]
+                                (insert-in-storage directory storage-id node))
+                              [directory 0] path)]
+    directory))
 
 (defn int-to-bytes [^long n]
   (let [^ByteBuffer buffer (ByteBuffer/allocate 4)]
