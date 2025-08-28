@@ -60,8 +60,10 @@
           [(map->Node {:name "Root Entry" :type :storage})] items))
 
 (defn make-cfb [streams]
-  (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))]
-    [starts proto-fat]))
+  (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))
+        directory (make-directory (map (fn [[path stream] start]
+                                         [path (count stream) start]) streams starts))]
+    [directory]))
 
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
