@@ -34,7 +34,7 @@
 (defn make-fat-chain [start length]
   (let [start (inc start)
         end (+ start (dec length))]
-    (concat (range start end) [ENDOFCHAIN])))
+    (conj (vec (range start end)) ENDOFCHAIN)))
 
 (defn make-proto-fat [sizes]
   (reduce (fn [[starts fat] size]
@@ -42,7 +42,7 @@
                   chain (make-fat-chain (count fat) (calc-num-sector size))
                   fat (concat fat chain)]
               [starts fat]))
-          [[] ()] sizes))
+          [[] []] sizes))
 
 (defrecord Node [name child left right type size start])
 
