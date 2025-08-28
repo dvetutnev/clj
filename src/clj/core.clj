@@ -25,11 +25,14 @@
       0
       (- SectorSize m))))
 
-(defn calc-num-sector [length]
-  (let [num-full-sector (math/floor-div length SectorSize)]
-    (if (= (mod length SectorSize) 0)
-      num-full-sector
-      (inc num-full-sector))))
+(defn calc-num-sector
+  ([length] (calc-num-sector length 1))
+  ([length entry-size]
+   (let [total-size (* length entry-size)
+         num-full-sector (math/floor-div total-size SectorSize)]
+     (if (= (mod total-size SectorSize) 0)
+       num-full-sector
+       (inc num-full-sector)))))
 
 (defn make-fat-chain [start length]
   (let [start (inc start)
@@ -62,7 +65,8 @@
 (defn make-cfb [streams]
   (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))
         directory (make-directory (map (fn [[path stream] start]
-                                         [path (count stream) start]) streams starts))]
+                                         [path (count stream) start]) streams starts))
+        start-directory (count proto-fat)]
     [directory]))
 
 (defn add-node [directory parent-id direction node]

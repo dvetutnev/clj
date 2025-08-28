@@ -21,9 +21,14 @@
     (is (= [ENDOFCHAIN 2 ENDOFCHAIN 4 5 ENDOFCHAIN] fat))))
 
 (deftest test-calc-num-sector
-  (is (= 1 (calc-num-sector (- SectorSize 1))))
-  (is (= 1 (calc-num-sector SectorSize)))
-  (is (= 2 (calc-num-sector (+ SectorSize 1)))))
+  (testing "one byte"
+    (is (= 1 (calc-num-sector (- SectorSize 1))))
+    (is (= 1 (calc-num-sector SectorSize)))
+    (is (= 2 (calc-num-sector (+ SectorSize 1)))))
+  (testing "128"
+    (is (= 1 (calc-num-sector 3 128)))
+    (is (= 1 (calc-num-sector 4 128)))
+    (is (= 2 (calc-num-sector 5 128)))))
 
 (deftest test-make-fat
   (testing "Simple"
