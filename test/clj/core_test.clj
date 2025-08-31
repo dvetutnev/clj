@@ -32,24 +32,30 @@
 
 (deftest test-make-fat
   (testing "Simple"
-    (let [fat (make-fat (range 127))
+    (let [[fat start length] (make-fat (range 127))
           tail (last fat)]
       (is (= 128 (count fat)))
-      (is (= FATSEC tail))))
+      (is (= FATSEC tail))
+      (is (= 127 start))
+      (is (= 1 length))))
   (testing "Expand"
-    (let [fat (vec (make-fat (range 128)))
-          padsec (subvec fat 128 254)
-          fatsec (subvec fat 254)]
+    (let [[fat start length] (make-fat (range 128))
+          padsec (subvec (vec fat) 128 254)
+          fatsec (subvec (vec fat) 254)]
       (is (= 256 (count fat)))
       (is (= (vec (long-array 126 FREESEC)) padsec))
-      (is (= (vec (long-array 2 FATSEC)) fatsec))))
+      (is (= (vec (long-array 2 FATSEC)) fatsec))
+      (is (= 254 start))
+      (is (= 2 length))))
   (testing "300"
-    (let [fat (vec (make-fat (range 300)))
-          padsec (subvec fat 300 381)
-          fatsec (subvec fat 381)]
+    (let [[fat start length] (make-fat (range 300))
+          padsec (subvec (vec fat) 300 381)
+          fatsec (subvec (vec fat) 381)]
       (is (= 384 (count fat)))
       (is (= (vec (long-array 81 FREESEC)) padsec))
-      (is (= (vec (long-array 3 FATSEC)) fatsec)))))
+      (is (= (vec (long-array 3 FATSEC)) fatsec))
+      (is (= 381 start))
+      (is (= 3 length)))))
 
 (deftest test-calc-padding
   (is (= 12 (calc-padding 500)))

@@ -121,7 +121,9 @@
            (* num-fat-sector fat-entry-peer-sector))
       (recur (inc num-fat-sector))
       (let [num-pad-entry (- (* num-fat-sector fat-entry-peer-sector)
-                             (+ num-fat-sector (count proto-fat)))]
-        (concat proto-fat
-                (long-array num-pad-entry FREESEC)
-                (long-array num-fat-sector FATSEC))))))
+                             (+ num-fat-sector (count proto-fat)))
+            start (+ (count proto-fat) num-pad-entry)]
+        [(concat proto-fat
+                 (long-array num-pad-entry FREESEC)
+                 (long-array num-fat-sector FATSEC))
+         start num-fat-sector]))))
