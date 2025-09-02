@@ -128,7 +128,8 @@
                  (long-array num-fat-sector FATSEC))
          start num-fat-sector]))))
 
-(def num-difat-sector-in-header 109)
+(def num-difat-entry-in-header 109)
 (defn make-difat [start length]
-  {:pre [(<= length num-difat-sector-in-header)]}
-  nil)
+  {:pre [(<= length num-difat-entry-in-header)]}
+  (concat (range start length)
+          (long-array (- num-difat-entry-in-header length) FREESEC)))
