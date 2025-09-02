@@ -47,20 +47,29 @@
               [starts fat]))
           [[] []] sizes))
 
-(defrecord Node [name child left right type size start])
+(def u32size 4)
+(def fat-entry-peer-sector (/ SectorSize u32size))
 
-(defn make-nodes-path [path size start]
-  (let [path* (string/split path #"/")
-        head (map #(map->Node {:name % :type :storage}) (drop-last path*))
-        tail (map->Node {:name (last path*) :type :stream :size size :start start})]
-    (concat head (list tail))))
-(defn add-nodes-path [directory path])
+(defn make-fat [proto-fat]
+  (loop [num-fat-sector (calc-num-sector (* (count proto-fat) u32size))]
+    (if (> (+ num-fat-sector (count proto-fat))
+           (* num-fat-sector fat-entry-peer-sector))
+      (recur (inc num-fat-sector))
+      (let [num-pad-entry (- (* num-fat-sector fat-entry-peer-sector)
+                             (+ num-fat-sector (count proto-fat)))
+            start (+ (count proto-fat) num-pad-entry)]
+        [(concat proto-fat
+                 (long-array num-pad-entry FREESEC)
+                 (long-array num-fat-sector FATSEC))
+         start num-fat-sector]))))
 
-(defn make-directory [items]
-  (reduce (fn [directory [path size start]]
-            (let [path* (make-nodes-path path size start)]
-              (add-nodes-path directory path*)))
-          [(map->Node {:name "Root Entry" :type :storage})] items))
+(def num-difat-entry-in-header 109)
+(defn make-difat [start length]
+  {:pre [(<= length num-difat-entry-in-header)]}
+  (concat (range start length)
+          (long-array (- num-difat-entry-in-header length) FREESEC)))
+
+(declare make-directory)
 
 (defn make-cfb [streams]
   (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))
@@ -68,6 +77,8 @@
                                          [path (count stream) start]) streams starts))
         start-directory (count proto-fat)]
     [directory]))
+
+(defrecord Node [name child left right type size start])
 
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
@@ -102,6 +113,18 @@
                               [directory 0] path)]
     directory))
 
+(defn make-nodes-path [path size start]
+  (let [path* (string/split path #"/")
+        head (map #(map->Node {:name % :type :storage}) (drop-last path*))
+        tail (map->Node {:name (last path*) :type :stream :size size :start start})]
+    (concat head (list tail))))
+
+(defn make-directory [items]
+  (reduce (fn [directory [path size start]]
+            (let [path* (make-nodes-path path size start)]
+              (add-nodes-path directory path*)))
+          [(map->Node {:name "Root Entry" :type :storage})] items))
+
 (defn int-to-bytes [^long n]
   (let [^ByteBuffer buffer (ByteBuffer/allocate 4)]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
@@ -111,25 +134,3 @@
 (defn write-to-file [path arr]
   (with-open [out (io/output-stream path)]
     (.write out arr)))
-
-(def u32size 4)
-(def fat-entry-peer-sector (/ SectorSize u32size))
-
-(defn make-fat [proto-fat]
-  (loop [num-fat-sector (calc-num-sector (* (count proto-fat) u32size))]
-    (if (> (+ num-fat-sector (count proto-fat))
-           (* num-fat-sector fat-entry-peer-sector))
-      (recur (inc num-fat-sector))
-      (let [num-pad-entry (- (* num-fat-sector fat-entry-peer-sector)
-                             (+ num-fat-sector (count proto-fat)))
-            start (+ (count proto-fat) num-pad-entry)]
-        [(concat proto-fat
-                 (long-array num-pad-entry FREESEC)
-                 (long-array num-fat-sector FATSEC))
-         start num-fat-sector]))))
-
-(def num-difat-entry-in-header 109)
-(defn make-difat [start length]
-  {:pre [(<= length num-difat-entry-in-header)]}
-  (concat (range start length)
-          (long-array (- num-difat-entry-in-header length) FREESEC)))
