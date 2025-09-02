@@ -72,11 +72,19 @@
 (declare make-directory)
 
 (defn make-cfb [streams]
-  (let [[starts proto-fat] (make-proto-fat (map (comp count last) streams))
+  (let [[starts strm-proto-fat] (make-proto-fat (map (comp count last) streams))
         directory (make-directory (map (fn [[path stream] start]
                                          [path (count stream) start]) streams starts))
-        start-directory (count proto-fat)]
-    [directory]))
+        start-directory (count strm-proto-fat)
+        num-directory-sector (calc-num-sector (count directory) 128)
+        proto-fat (concat strm-proto-fat
+                          (make-fat-chain start-directory num-directory-sector))
+        [fat start-fat num-fat-sector] (make-fat proto-fat)
+        difat (make-difat start-fat num-fat-sector)
+        header {:num-fat-sector num-fat-sector
+                :start-directory start-directory
+                :difat difat}]
+    [proto-fat]))
 
 (defrecord Node [name child left right type size start])
 
