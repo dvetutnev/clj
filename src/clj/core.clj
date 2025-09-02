@@ -66,7 +66,7 @@
 (def num-difat-entry-in-header 109)
 (defn make-difat [start length]
   {:pre [(<= length num-difat-entry-in-header)]}
-  (concat (range start length)
+  (concat (range start (+ start length))
           (long-array (- num-difat-entry-in-header length) FREESEC)))
 
 (declare make-directory)
@@ -84,7 +84,7 @@
         header {:num-fat-sector num-fat-sector
                 :start-directory start-directory
                 :difat difat}]
-    [proto-fat]))
+    [header start-fat]))
 
 (defrecord Node [name child left right type size start])
 
