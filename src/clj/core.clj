@@ -159,13 +159,3 @@
             (let [path* (make-nodes-path path size start)]
               (add-nodes-path directory path*)))
           [(map->Node {:name "Root Entry" :type :storage})] items))
-
-(defn int-to-bytes [^long n]
-  (let [^ByteBuffer buffer (ByteBuffer/allocate 4)]
-    (.order buffer ByteOrder/LITTLE_ENDIAN)
-    (.putInt buffer n)
-    (.array buffer)))
-
-(defn write-to-file [path arr]
-  (with-open [out (io/output-stream path)]
-    (.write out arr)))
