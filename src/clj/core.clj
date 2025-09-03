@@ -69,6 +69,32 @@
   (concat (range start (+ start length))
           (long-array (- num-difat-entry-in-header length) FREESEC)))
 
+(defn serialize-header [header]
+  (let [^ByteBuffer buffer (ByteBuffer/allocate SectorSize)]
+    (-> buffer
+        (.order ByteOrder/LITTLE_ENDIAN)
+        (.put (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])) ; Signature
+        (.put (byte-array 16 (byte 0))) ; CLSID
+        (.putShort 0x003E) ; Minor version
+        (.putShort 0x0003) ; Major version
+        (.putShort (unchecked-short 0xFFFE)) ; Byte order
+        (.putShort 0x0009) ; Sector size
+        (.putShort 0x0006) ; Mini stream sector size
+        (.putShort 0) ; Reserved
+        (.putInt 0)   ; Reserved
+        (.putInt 0)   ; Number of directory sector (not used for version 3)
+        (.putInt (:num-fat-sector header))  ; Number of FAT sector
+        (.putInt (:start-directory header)) ; Directory starting sector location
+        (.putInt 0) ; Transaction signature
+        (.putInt 0) ; Mini stream cutoff
+        (.putInt (unchecked-int ENDOFCHAIN)) ; Mini FAT start sector location
+        (.putInt 0) ; Number of mini FAT sector
+        (.putInt (unchecked-int ENDOFCHAIN)) ; DIFAT start sector location
+        (.putInt 0)) ; Number of DIFAT sector
+    (doseq [entry (:difat header)]
+      (.putInt buffer (unchecked-int entry)))
+    (.array buffer)))
+
 (declare make-directory)
 
 (defn make-cfb [streams]
@@ -84,7 +110,8 @@
         header {:num-fat-sector num-fat-sector
                 :start-directory start-directory
                 :difat difat}]
-    [header start-fat]))
+    (with-open [out (io/output-stream "test.bin")]
+      (.write out (serialize-header header)))))
 
 (defrecord Node [name child left right type size start])
 
