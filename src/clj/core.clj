@@ -96,6 +96,13 @@
       0
       (- SectorSize m))))
 
+(defn calc-directory-padding [length]
+  (let [entry-peer-sector (/ SectorSize DirectoryEntrySize)
+        m (mod length entry-peer-sector)]
+    (if (= m 0)
+      0
+      (- entry-peer-sector m))))
+
 (declare make-directory)
 (declare serialize-directory-entry)
 
