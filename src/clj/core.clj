@@ -90,11 +90,20 @@
       (.putInt buffer (unchecked-int entry)))
     (.array buffer)))
 
-(defn calc-padding [size]
-  (let [m (mod size SectorSize)]
+(defn calc-padding
+  ([length] (calc-padding length SectorSize))
+  ([length alignment]
+   (let [m (mod length alignment)]
+     (if (= m 0)
+       0
+       (- SectorSize m)))))
+
+(defn calc-directory-padding [length]
+  (let [entry-peer-sector (/ SectorSize DirectoryEntrySize)
+        m (mod length entry-peer-sector)]
     (if (= m 0)
       0
-      (- SectorSize m))))
+      (- entry-peer-sector m))))
 
 (defn calc-directory-padding [length]
   (let [entry-peer-sector (/ SectorSize DirectoryEntrySize)
