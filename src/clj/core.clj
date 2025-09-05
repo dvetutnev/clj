@@ -12,18 +12,12 @@
 
 (def SectorSize 512)
 
-(def strm1 (byte-array (+ 1 (* 7 SectorSize)) (byte \A)))
-(def strm2 (byte-array (* 8 SectorSize) (byte \B)))
+(def strm1 (byte-array (+ 1 (* 1 SectorSize)) (byte \A)))
+(def strm2 (byte-array (* 2 SectorSize) (byte \B)))
 
 (def ENDOFCHAIN 0xFFFFFFFE)
 (def FREESEC 0xFFFFFFFF)
 (def FATSEC 0xFFFFFFFD)
-
-(defn calc-padding [size]
-  (let [m (mod size SectorSize)]
-    (if (= m 0)
-      0
-      (- SectorSize m))))
 
 (defn calc-num-sector
   ([length] (calc-num-sector length 1))
@@ -95,6 +89,12 @@
       (.putInt buffer (unchecked-int entry)))
     (.array buffer)))
 
+(defn calc-padding [size]
+  (let [m (mod size SectorSize)]
+    (if (= m 0)
+      0
+      (- SectorSize m))))
+
 (declare make-directory)
 
 (defn make-cfb [streams]
@@ -111,7 +111,10 @@
                 :start-directory start-directory
                 :difat difat}]
     (with-open [out (io/output-stream "test.bin")]
-      (.write out (serialize-header header)))))
+      (.write out (serialize-header header))
+      (doseq [[_ content] streams]
+        (.write out content)
+        (.write out (byte-array (calc-padding (count content)) (byte 0)))))))
 
 (defrecord Node [name child left right type size start])
 
