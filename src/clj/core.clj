@@ -96,21 +96,7 @@
    (let [m (mod length alignment)]
      (if (= m 0)
        0
-       (- SectorSize m)))))
-
-(defn calc-directory-padding [length]
-  (let [entry-peer-sector (/ SectorSize DirectoryEntrySize)
-        m (mod length entry-peer-sector)]
-    (if (= m 0)
-      0
-      (- entry-peer-sector m))))
-
-(defn calc-directory-padding [length]
-  (let [entry-peer-sector (/ SectorSize DirectoryEntrySize)
-        m (mod length entry-peer-sector)]
-    (if (= m 0)
-      0
-      (- entry-peer-sector m))))
+       (- alignment m)))))
 
 (declare make-directory)
 (declare serialize-directory-entry)

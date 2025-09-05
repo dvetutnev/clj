@@ -61,10 +61,8 @@
   (testing "one byte"
     (is (= 12 (calc-padding 500)))
     (is (= 0 (calc-padding 1024)))
-    (is (= 24 (calc-padding 1000)))))
-
-(deftest test-calc-directory-padding
-  (is (= 1 (calc-directory-padding 3)))
-  (is (= 0 (calc-directory-padding 8)))
-  (is (= 2 (calc-directory-padding 6))))
-
+    (is (= 24 (calc-padding 1000))))
+  (testing "explicit"
+    (is (= 1 (calc-padding 3 4)))
+    (is (= 0 (calc-padding 8 4)))
+    (is (= 2 (calc-padding 6 4)))))
