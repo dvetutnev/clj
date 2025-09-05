@@ -137,10 +137,7 @@
 
 (defn serialize-directory-entry [entry]
   (let [^ByteBuffer buffer (ByteBuffer/allocate DirectoryEntrySize)
-        name (.getBytes (:name entry) "UTF-16LE")
-        start (if (nil? (:start entry))
-                0
-                (:start entry))]
+        name (.getBytes (:name entry) "UTF-16LE")]
     (-> buffer
         (.order ByteOrder/LITTLE_ENDIAN)
         (.put name)
