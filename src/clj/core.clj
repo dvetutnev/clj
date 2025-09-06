@@ -12,6 +12,7 @@
 
 (def SectorSize 512)
 (def DirectoryEntrySize 128)
+(def directory-entry-peer-sector (/ SectorSize DirectoryEntrySize))
 
 (def strm1 (byte-array (+ 1 (* 1 SectorSize)) (byte \A)))
 (def strm2 (byte-array (* 2 SectorSize) (byte \B)))
@@ -90,6 +91,41 @@
       (.putInt buffer (unchecked-int entry)))
     (.array buffer)))
 
+(defrecord Node [name child left right type size start])
+
+(def StorageObject (byte 0x01))
+(def StreamObject (byte 0x02))
+(def RootStorageObject (byte 0x05))
+
+(defn nil->default [default value]
+  (if (nil? value) default value))
+
+(def nil->0xFFFFFFFF (partial nil->default 0xFFFFFFFF))
+(def nil->0 (partial nil->default 0))
+
+(defn serialize-directory-entry [entry]
+  (let [^ByteBuffer buffer (ByteBuffer/allocate DirectoryEntrySize)
+        name (.getBytes (:name entry) "UTF-16LE")
+        name-size (if (empty? name) 0 (+ (count name) 2))]
+    (-> buffer
+        (.order ByteOrder/LITTLE_ENDIAN)
+        (.put name)
+        (.putShort 0)                   ; Entry name terminator
+        (.put (byte-array (- 64 (+ (count name) 2)) (byte 0))) ; Entry name padding
+        (.putShort name-size) ; Entry name length with terminator
+        (.put (:type entry))
+        (.put (byte 0x01))             ; Color flag - black
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:child entry))))
+        (.put (byte-array 16 (byte 0x00))) ; CLSID
+        (.putInt 0)                        ; State bits
+        (.putLong 0)                       ; Creation time
+        (.putLong 0)                       ; Modified time
+        (.putInt (unchecked-int (nil->0 (:start entry))))
+        (.putLong (unchecked-long (nil->0 (:size entry))))
+        (.array))))
+
 (defn calc-padding
   ([length] (calc-padding length SectorSize))
   ([length alignment]
@@ -99,7 +135,6 @@
        (- alignment m)))))
 
 (declare make-directory)
-(declare serialize-directory-entry)
 
 (defn make-cfb [streams]
   (let [[starts strm-proto-fat] (make-proto-fat (map (comp count last) streams))
@@ -120,41 +155,9 @@
         (.write out content)
         (.write out (byte-array (calc-padding (count content)) (byte 0))))
       (doseq [entry directory]
-        (.write out (serialize-directory-entry entry))))))
-
-(defrecord Node [name child left right type size start])
-
-(def StorageObject (byte 0x01))
-(def StreamObject (byte 0x02))
-(def RootStorageObject (byte 0x05))
-
-(defn nil->default [default value]
-  (if (nil? value) default value))
-
-(def nil->0xFFFFFFFF (partial nil->default 0xFFFFFFFF))
-(def nil->0 (partial nil->default 0))
-
-(defn serialize-directory-entry [entry]
-  (let [^ByteBuffer buffer (ByteBuffer/allocate DirectoryEntrySize)
-        name (.getBytes (:name entry) "UTF-16LE")]
-    (-> buffer
-        (.order ByteOrder/LITTLE_ENDIAN)
-        (.put name)
-        (.putShort 0)                   ; Entry name terminator
-        (.put (byte-array (- 64 (+ (count name) 2)) (byte 0))) ; Entry name padding
-        (.putShort (+ (count name) 2)) ; Entry name length with terminator
-        (.put (:type entry))
-        (.put (byte 0x01))             ; Color flag - black
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:child entry))))
-        (.put (byte-array 16 (byte 0x00))) ; CLSID
-        (.putInt 0)                        ; State bits
-        (.putLong 0)                       ; Creation time
-        (.putLong 0)                       ; Modified time
-        (.putInt (unchecked-int (nil->0 (:start entry))))
-        (.putLong (unchecked-long (nil->0 (:size entry))))
-        (.array))))
+        (.write out (serialize-directory-entry entry)))
+      (doseq [_ (range (calc-padding (count directory) directory-entry-peer-sector))]
+        (.write out (serialize-directory-entry (map->Node {:name "" :type (byte 0x00)})))))))
 
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
