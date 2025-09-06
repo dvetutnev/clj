@@ -14,8 +14,8 @@
 (def DirectoryEntrySize 128)
 (def directory-entry-peer-sector (/ SectorSize DirectoryEntrySize))
 
-(def strm1 (byte-array (+ 1 (* 1 SectorSize)) (byte \A)))
-(def strm2 (byte-array (* 2 SectorSize) (byte \B)))
+(def strm1 (byte-array (+ 1 (* 8 SectorSize)) (byte \A)))
+(def strm2 (byte-array (* 8 SectorSize) (byte \B)))
 
 (def ENDOFCHAIN 0xFFFFFFFE)
 (def FREESEC 0xFFFFFFFF)
@@ -57,7 +57,7 @@
         [(concat proto-fat
                  (long-array num-pad-entry FREESEC)
                  (long-array num-fat-sector FATSEC))
-         start num-fat-sector]))))
+         start num-fat-sector num-pad-entry]))))
 
 (def num-difat-entry-in-header 109)
 (defn make-difat [start length]
@@ -151,7 +151,7 @@
         num-directory-sector (calc-num-sector (count directory) DirectoryEntrySize)
         proto-fat (concat strm-proto-fat
                           (make-fat-chain start-directory num-directory-sector))
-        [fat start-fat num-fat-sector] (make-fat proto-fat)
+        [fat start-fat num-fat-sector num-pad-sector] (make-fat proto-fat)
         difat (make-difat start-fat num-fat-sector)
         header {:num-fat-sector num-fat-sector
                 :start-directory start-directory
@@ -165,6 +165,8 @@
         (.write out (serialize-directory-entry entry)))
       (doseq [_ (range (calc-padding (count directory) directory-entry-peer-sector))]
         (.write out (serialize-directory-entry (map->Node {:name "" :type (byte 0x00)}))))
+      (doseq [_ (range num-pad-sector)]
+        (.write out (byte-array SectorSize (byte 0))))
       (.write out (serialize-fat fat)))))
 
 (defn add-node [directory parent-id direction node]
