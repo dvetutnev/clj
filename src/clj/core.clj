@@ -126,6 +126,13 @@
         (.putLong (unchecked-long (nil->0 (:size entry))))
         (.array))))
 
+(defn serialize-fat [fat]
+  (let [^ByteBuffer buffer (ByteBuffer/allocate (* (count fat) u32size))]
+    (.order buffer ByteOrder/LITTLE_ENDIAN)
+    (doseq [entry fat]
+      (.putInt buffer (unchecked-int entry)))
+    (.array buffer)))
+
 (defn calc-padding
   ([length] (calc-padding length SectorSize))
   ([length alignment]
@@ -157,7 +164,8 @@
       (doseq [entry directory]
         (.write out (serialize-directory-entry entry)))
       (doseq [_ (range (calc-padding (count directory) directory-entry-peer-sector))]
-        (.write out (serialize-directory-entry (map->Node {:name "" :type (byte 0x00)})))))))
+        (.write out (serialize-directory-entry (map->Node {:name "" :type (byte 0x00)}))))
+      (.write out (serialize-fat fat)))))
 
 (defn add-node [directory parent-id direction node]
   (let [new-id (count directory)
