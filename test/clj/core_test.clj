@@ -58,7 +58,7 @@
       (is (= 3 length)))))
 
 (deftest test-calc-padding
-  (testing "one byte"
+  (testing "SectorSize"
     (is (= 12 (calc-padding 500)))
     (is (= 0 (calc-padding 1024)))
     (is (= 24 (calc-padding 1000))))
