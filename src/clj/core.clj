@@ -124,6 +124,10 @@
 
 (defrecord Node [name child left right type size start])
 
+(def StorageObject (byte 0x01))
+(def StreamObject (byte 0x02))
+(def RootStorageObject (byte 0x05))
+
 (defn nil->default [default value]
   (if (nil? value) default value))
 
@@ -139,7 +143,7 @@
         (.putShort 0)                   ; Entry name terminator
         (.put (byte-array (- 64 (+ (count name) 2)) (byte 0))) ; Entry name padding
         (.putShort (+ (count name) 2)) ; Entry name length with terminator
-        (.put (byte 0x05))             ; Entry type
+        (.put (:type entry))
         (.put (byte 0x01))             ; Color flag - black
         (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
         (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
@@ -187,12 +191,12 @@
 
 (defn make-nodes-path [path size start]
   (let [path* (string/split path #"/")
-        head (map #(map->Node {:name % :type :storage}) (drop-last path*))
-        tail (map->Node {:name (last path*) :type :stream :size size :start start})]
+        head (map #(map->Node {:name % :type StorageObject}) (drop-last path*))
+        tail (map->Node {:name (last path*) :type StreamObject :size size :start start})]
     (concat head (list tail))))
 
 (defn make-directory [items]
   (reduce (fn [directory [path size start]]
             (let [path* (make-nodes-path path size start)]
               (add-nodes-path directory path*)))
-          [(map->Node {:name "Root Entry" :type :storage})] items))
+          [(map->Node {:name "Root Entry" :type RootStorageObject})] items))
