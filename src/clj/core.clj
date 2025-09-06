@@ -124,16 +124,11 @@
 
 (defrecord Node [name child left right type size start])
 
-(defn serialize-dir-id [id]
-  (let [id (if (nil? id)
-             0xFFFFFFFF ; NOSTREAM
-             id)]
-    (unchecked-int id)))
+(defn nil->default [default value]
+  (if (nil? value) default value))
 
-(defn nil->0 [val]
-  (if (nil? val)
-    0
-    val))
+(def nil->0xFFFFFFFF (partial nil->default 0xFFFFFFFF))
+(def nil->0 (partial nil->default 0))
 
 (defn serialize-directory-entry [entry]
   (let [^ByteBuffer buffer (ByteBuffer/allocate DirectoryEntrySize)
@@ -146,9 +141,9 @@
         (.putShort (+ (count name) 2)) ; Entry name length with terminator
         (.put (byte 0x05))             ; Entry type
         (.put (byte 0x01))             ; Color flag - black
-        (.putInt (serialize-dir-id (:left entry)))
-        (.putInt (serialize-dir-id (:right entry)))
-        (.putInt (serialize-dir-id (:child entry)))
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
+        (.putInt (unchecked-int (nil->0xFFFFFFFF (:child entry))))
         (.put (byte-array 16 (byte 0x00))) ; CLSID
         (.putInt 0)                        ; State bits
         (.putLong 0)                       ; Creation time
