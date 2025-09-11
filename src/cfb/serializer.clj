@@ -1,14 +1,8 @@
-(ns clj.core
+(ns cfb.serializer
   (:require [clojure.math :as math]
             [clojure.string :as string]
             [clojure.java.io :as io])
-  (:import (java.nio ByteBuffer ByteOrder))
-  (:gen-class))
-
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+  (:import (java.nio ByteBuffer ByteOrder)))
 
 (def SectorSize 512)
 (def DirectoryEntrySize 128)
