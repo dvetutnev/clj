@@ -7,14 +7,14 @@
 
 (defn read-header [f]
   (let [buffer (ByteBuffer/allocate SectorSize)
-        header (byte-array 8)]
+        signature (byte-array 8)]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
     (.read f buffer)
     (.rewind buffer)
-    {:minor-version (do
-                      (.get buffer header)
-                      (.get buffer (byte-array 16)) ; CLSID
-                      (.getShort buffer))}))
+    (.get buffer signature)
+    #_(assert (= signature (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])))
+    (.position buffer (+ (.position buffer) 16)) ; CLSID
+    {:minor-version (.getShort buffer)}))
 
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
