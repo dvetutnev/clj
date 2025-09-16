@@ -61,26 +61,26 @@
 
 (defn serialize-header [header]
   (let [^ByteBuffer buffer (ByteBuffer/allocate SectorSize)]
-    (-> buffer
-        (.order ByteOrder/LITTLE_ENDIAN)
-        (.put (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])) ; Signature
-        (.put (byte-array 16 (byte 0))) ; CLSID
-        (.putShort 0x003E) ; Minor version
-        (.putShort 0x0003) ; Major version
-        (.putShort (unchecked-short 0xFFFE)) ; Byte order
-        (.putShort 0x0009) ; Sector size
-        (.putShort 0x0006) ; Mini stream sector size
-        (.putShort 0) ; Reserved
-        (.putInt 0)   ; Reserved
-        (.putInt 0)   ; Number of directory sector (not used for version 3)
-        (.putInt (:num-fat-sector header))  ; Number of FAT sector
-        (.putInt (:start-directory header)) ; Directory starting sector location
-        (.putInt 0) ; Transaction signature
-        (.putInt 0) ; Mini stream cutoff
-        (.putInt (unchecked-int ENDOFCHAIN)) ; Mini FAT start sector location
-        (.putInt 0) ; Number of mini FAT sector
-        (.putInt (unchecked-int ENDOFCHAIN)) ; DIFAT start sector location
-        (.putInt 0)) ; Number of DIFAT sector
+    (doto buffer
+      (.order ByteOrder/LITTLE_ENDIAN)
+      (.put (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])) ; Signature
+      (.put (byte-array 16 (byte 0))) ; CLSID
+      (.putShort 0x003E) ; Minor version
+      (.putShort 0x0003) ; Major version
+      (.putShort (unchecked-short 0xFFFE)) ; Byte order
+      (.putShort 0x0009) ; Sector size
+      (.putShort 0x0006) ; Mini stream sector size
+      (.putShort 0) ; Reserved
+      (.putInt 0)   ; Reserved
+      (.putInt 0)   ; Number of directory sector (not used for version 3)
+      (.putInt (:num-fat-sector header))  ; Number of FAT sector
+      (.putInt (:start-directory header)) ; Directory starting sector location
+      (.putInt 0) ; Transaction signature
+      (.putInt 0) ; Mini stream cutoff
+      (.putInt (unchecked-int ENDOFCHAIN)) ; Mini FAT start sector location
+      (.putInt 0) ; Number of mini FAT sector
+      (.putInt (unchecked-int ENDOFCHAIN)) ; DIFAT start sector location
+      (.putInt 0)) ; Number of DIFAT sector
     (doseq [entry (:difat header)]
       (.putInt buffer (unchecked-int entry)))
     (.array buffer)))
@@ -101,24 +101,24 @@
   (let [^ByteBuffer buffer (ByteBuffer/allocate DirectoryEntrySize)
         name (.getBytes (:name entry) "UTF-16LE")
         name-size (if (empty? name) 0 (+ (count name) 2))]
-    (-> buffer
-        (.order ByteOrder/LITTLE_ENDIAN)
-        (.put name)
-        (.putShort 0)                   ; Entry name terminator
-        (.put (byte-array (- 64 (+ (count name) 2)) (byte 0))) ; Entry name padding
-        (.putShort name-size) ; Entry name length with terminator
-        (.put (:type entry))
-        (.put (byte 0x01))             ; Color flag - black
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
-        (.putInt (unchecked-int (nil->0xFFFFFFFF (:child entry))))
-        (.put (byte-array 16 (byte 0x00))) ; CLSID
-        (.putInt 0)                        ; State bits
-        (.putLong 0)                       ; Creation time
-        (.putLong 0)                       ; Modified time
-        (.putInt (unchecked-int (nil->0 (:start entry))))
-        (.putLong (unchecked-long (nil->0 (:size entry))))
-        (.array))))
+    (doto buffer
+      (.order ByteOrder/LITTLE_ENDIAN)
+      (.put name)
+      (.putShort 0)                   ; Entry name terminator
+      (.put (byte-array (- 64 (+ (count name) 2)) (byte 0))) ; Entry name padding
+      (.putShort name-size) ; Entry name length with terminator
+      (.put (:type entry))
+      (.put (byte 0x01))             ; Color flag - black
+      (.putInt (unchecked-int (nil->0xFFFFFFFF (:left entry))))
+      (.putInt (unchecked-int (nil->0xFFFFFFFF (:right entry))))
+      (.putInt (unchecked-int (nil->0xFFFFFFFF (:child entry))))
+      (.put (byte-array 16 (byte 0x00))) ; CLSID
+      (.putInt 0)                        ; State bits
+      (.putLong 0)                       ; Creation time
+      (.putLong 0)                       ; Modified time
+      (.putInt (unchecked-int (nil->0 (:start entry))))
+      (.putLong (unchecked-long (nil->0 (:size entry)))))
+    (.array buffer)))
 
 (defn serialize-fat [fat]
   (let [^ByteBuffer buffer (ByteBuffer/allocate (* (count fat) u32size))]
