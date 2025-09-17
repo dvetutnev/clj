@@ -15,7 +15,11 @@
     (assert (java.util.Arrays/equals signature
                                      (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])))
     (.position buffer (+ (.position buffer) 16)) ; Skip CLSID
-    {:minor-version (.getShort buffer)}))
+    (let [header {:minor-version (.getShort buffer)
+                  :major-version (.getShort buffer)
+                  :byte-order (.getShort buffer)}]
+      (assert (= (:byte-order header) (unchecked-short 0xFFFE)))
+      header)))
 
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
