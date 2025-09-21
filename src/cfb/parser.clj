@@ -22,10 +22,11 @@
 (defn read-header [f]
   (let [buffer (ByteBuffer/allocate HeaderSize)
         signature (byte-array 8)]
-    (.order buffer ByteOrder/LITTLE_ENDIAN)
     (.read f buffer)
-    (.rewind buffer)
-    (.get buffer signature)
+    (doto buffer
+      (.order ByteOrder/LITTLE_ENDIAN)
+      (.rewind)
+      (.get signature))
     (assert (java.util.Arrays/equals signature
                                      (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])))
     (shift-position buffer 16) ; Skip CLSID
@@ -50,7 +51,6 @@
       (assert (= (:major-version header) 0x0003))
       (assert (= (:byte-order header) 0xFFFE))
       (assert (= (:sector-shift header) 0x0009))
-      #_(assert (= (:mini-sector-shift header) 0x0006))
       header)))
 
 (defn open-cfb [^String path]
