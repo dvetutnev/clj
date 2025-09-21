@@ -33,11 +33,14 @@
                                   :num-fat-sector (do ; skip reserved and numdirectory sector
                                                     (.position buffer (+ (.position buffer) 10))
                                                     (read-u32 buffer))
-                                  :start-directory (read-u32 buffer)
+                                  :start-directory-sector (read-u32 buffer)
                                   :mini-stream-cutoff (do ; skip transaction signature
                                                         (.position buffer (+ (.position buffer) 4))
                                                         (read-u32 buffer))
-                                  :start-minifat (read-u32 buffer)])]
+                                  :start-minifat (read-u32 buffer)
+                                  :num-minifat-sector (read-u32 buffer)
+                                  :start-difat-sector (read-u32 buffer)
+                                  :num-difat-sector (read-u32 buffer)])]
 
       (assert (= (:minor-version header) 0x003E))
       (assert (= (:major-version header) 0x0003))
