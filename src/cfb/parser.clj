@@ -5,6 +5,16 @@
 
 (def SectorSize 512)
 
+(defn read-u16 [^ByteBuffer buffer]
+  (-> buffer
+      .getShort
+      (bit-and 0xFFFF)))
+
+(defn read-u32 [^ByteBuffer buffer]
+  (-> buffer
+      .getInt
+      (bit-and 0xFFFFFFFF)))
+
 (defn read-header [f]
   (let [buffer (ByteBuffer/allocate SectorSize)
         signature (byte-array 8)]
@@ -15,23 +25,23 @@
     (assert (java.util.Arrays/equals signature
                                      (byte-array [0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1])))
     (.position buffer (+ (.position buffer) 16)) ; Skip CLSID
-    (let [header (apply hash-map [:minor-version (.getShort buffer)
-                                  :major-version (.getShort buffer)
-                                  :byte-order (.getShort buffer)
-                                  :sector-shift (.getShort buffer)
-                                  :mini-sector-shift (.getShort buffer)
+    (let [header (apply hash-map [:minor-version (read-u16 buffer)
+                                  :major-version (read-u16 buffer)
+                                  :byte-order (read-u16 buffer)
+                                  :sector-shift (read-u16 buffer)
+                                  :mini-sector-shift (read-u16 buffer)
                                   :num-fat-sector (do ; skip reserved and numdirectory sector
                                                     (.position buffer (+ (.position buffer) 10))
-                                                    (.getInt buffer))
-                                  :start-directory (.getInt buffer)
+                                                    (read-u32 buffer))
+                                  :start-directory (read-u32 buffer)
                                   :mini-stream-cutoff (do ; skip transaction signature
                                                         (.position buffer (+ (.position buffer) 4))
-                                                        (.getInt buffer))
-                                  :start-minifat (.getInt buffer)])]
+                                                        (read-u32 buffer))
+                                  :start-minifat (read-u32 buffer)])]
 
-      (assert (= (:byte-order header) (unchecked-short 0xFFFE)))
       (assert (= (:minor-version header) 0x003E))
       (assert (= (:major-version header) 0x0003))
+      (assert (= (:byte-order header) 0xFFFE))
       (assert (= (:sector-shift header) 0x0009))
       #_(assert (= (:mini-sector-shift header) 0x0006))
       header)))
