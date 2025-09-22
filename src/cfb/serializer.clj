@@ -10,6 +10,7 @@
 
 (def strm1 (byte-array (+ 1 (* 8 SectorSize)) (byte \A)))
 (def strm2 (byte-array (* 8 SectorSize) (byte \B)))
+(def strm3 (byte-array (* 128 SectorSize) (byte \C)))
 
 (def ENDOFCHAIN 0xFFFFFFFE)
 (def FREESEC 0xFFFFFFFF)

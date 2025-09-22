@@ -45,13 +45,18 @@
                                   :start-minifat (read-u32 buffer)
                                   :num-minifat-sector (read-u32 buffer)
                                   :start-difat-sector (read-u32 buffer)
-                                  :num-difat-sector (read-u32 buffer)])]
+                                  :num-difat-sector (read-u32 buffer)])
+
+          difat (let [difat (transient [])]
+                  (doseq [_ (range (min (:num-fat-sector header) 109))]
+                    (conj! difat (read-u32 buffer)))
+                  (persistent! difat))]
 
       (assert (= (:minor-version header) 0x003E))
       (assert (= (:major-version header) 0x0003))
       (assert (= (:byte-order header) 0xFFFE))
       (assert (= (:sector-shift header) 0x0009))
-      header)))
+      (assoc header :difat difat))))
 
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
