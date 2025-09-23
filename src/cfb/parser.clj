@@ -5,6 +5,7 @@
 
 (def SectorSize 512)
 (def HeaderSize 512)
+(def u32size 4)
 
 (defn read-u16! [^ByteBuffer buffer]
   (-> buffer
@@ -58,7 +59,25 @@
       (assert (= (:sector-shift header) 0x0009))
       (assoc header :difat difat))))
 
+(defn sector->offset [n]
+  (* (+ n 1) SectorSize))
+
+(defn read-fat [f difat]
+  (let [buffer (ByteBuffer/allocate SectorSize)
+        fat (transient [])]
+    (.order buffer ByteOrder/LITTLE_ENDIAN)
+    (doseq [n difat]
+      (.position f (sector->offset n))
+      (.clear buffer)
+      (.read f buffer)
+      (.rewind buffer)
+      (doseq [_ (range (/ SectorSize u32size))]
+        (conj! fat (read-u32! buffer))))
+    (persistent! fat)))
+
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
-        f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))]
-    (read-header f)))
+        f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))
+        header (read-header f)
+        fat (read-fat f (:difat header))]
+    (assoc header :fat fat)))
