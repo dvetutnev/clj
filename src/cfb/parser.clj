@@ -107,7 +107,11 @@
       (.read f buffer)
       (.rewind buffer)
       (let [entry (apply hash-map [:name (read-directory-entry-name! buffer)
-                                   :type (read-directory-entry-type! buffer)])]
+                                   :type (read-directory-entry-type! buffer)
+                                   :color (read-u8! buffer)
+                                   :left (read-u32! buffer)
+                                   :right (read-u32! buffer)
+                                   :child (read-u32! buffer)])]
         (conj! entries entry)))
     (persistent! entries)))
 
