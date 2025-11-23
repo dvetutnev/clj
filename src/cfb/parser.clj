@@ -7,6 +7,11 @@
 (def HeaderSize 512)
 (def u32size 4)
 
+(defn read-u8! [^ByteBuffer buffer]
+  (-> buffer
+      .get
+      (bit-and 0xFF)))
+
 (defn read-u16! [^ByteBuffer buffer]
   (-> buffer
       .getShort
@@ -85,6 +90,13 @@
     (let [len (read-u16! buffer)]
       (String. name 0 (- len 2) "UTF-16LE"))))
 
+(defn read-directory-entry-type! [^ByteBuffer buffer]
+  (let [type (read-u8! buffer)]
+    (case type
+      1 :storage
+      2 :stream
+      5 :root)))
+
 (defn read-directory-sector [f sector]
   (let [buffer (ByteBuffer/allocate 128)
         entries (transient [])]
@@ -94,7 +106,8 @@
       (.clear buffer)
       (.read f buffer)
       (.rewind buffer)
-      (let [entry (apply hash-map [:name (read-directory-entry-name! buffer)])]
+      (let [entry (apply hash-map [:name (read-directory-entry-name! buffer)
+                                   :type (read-directory-entry-type! buffer)])]
         (conj! entries entry)))
     (persistent! entries)))
 
