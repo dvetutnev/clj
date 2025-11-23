@@ -83,14 +83,7 @@
     (.position buffer 0)
     (.get buffer name)
     (let [len (read-u16! buffer)]
-      name)))
-
-(def name (byte-array [82, 0, 111, 0, 111, 0, 116, 0, 32, 0, 69, 0, 110, 0, 116, 0, 114,
-                       0, 121, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                       0, 0, 0, 0]))
-
-(def name-str (String. name "UTF-16LE"))
+      (String. name 0 (- len 2) "UTF-16LE"))))
 
 (defn read-directory-sector [f sector]
   (let [buffer (ByteBuffer/allocate 128)
