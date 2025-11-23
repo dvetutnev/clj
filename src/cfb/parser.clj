@@ -78,7 +78,7 @@
 (defn read-directory-stream [fat start]
   (loop [sector-id start]))
 
-(defn read-dir-name [^ByteBuffer buffer]
+(defn read-directory-entry-name! [^ByteBuffer buffer]
   (let [name (byte-array 64 (byte 0x00))]
     (.position buffer 0)
     (.get buffer name)
@@ -90,11 +90,11 @@
         entries (transient [])]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
     (.position f (sector->offset sector))
-    (doseq [_ (range 1)]
+    (doseq [_ (range 4)]
       (.clear buffer)
       (.read f buffer)
       (.rewind buffer)
-      (let [entry (apply hash-map [:name (read-dir-name buffer)])]
+      (let [entry (apply hash-map [:name (read-directory-entry-name! buffer)])]
         (conj! entries entry)))
     (persistent! entries)))
 
