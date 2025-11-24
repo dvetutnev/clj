@@ -25,7 +25,7 @@
 (defn shift-position! [^ByteBuffer buffer n]
   (.position buffer (+ (.position buffer) n)))
 
-(defn read-header [f]
+(defn read-header! [^FileChannel f]
   (let [buffer (ByteBuffer/allocate HeaderSize)
         signature (byte-array 8)]
     (.read f buffer)
@@ -67,7 +67,7 @@
 (defn sector->offset [n]
   (* (+ n 1) SectorSize))
 
-(defn read-fat [f difat]
+(defn read-fat [^FileChannel f difat]
   (let [buffer (ByteBuffer/allocate SectorSize)
         fat (transient [])]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
@@ -79,9 +79,6 @@
       (doseq [_ (range (/ SectorSize u32size))]
         (conj! fat (read-u32! buffer))))
     (persistent! fat)))
-
-(defn read-directory-stream [fat start]
-  (loop [sector-id start]))
 
 (defn read-directory-entry-name! [^ByteBuffer buffer]
   (let [name (byte-array 64 (byte 0x00))]
@@ -97,7 +94,7 @@
       2 :stream
       5 :root)))
 
-(defn read-directory-sector [f sector]
+(defn read-directory-sector [^FileChannel f sector]
   (let [buffer (ByteBuffer/allocate 128)
         entries (transient [])]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
@@ -124,7 +121,7 @@
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
         f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))
-        header (read-header f)
+        header (read-header! f)
         fat (read-fat f (:difat header))
         directory-stream (read-directory-stream fat (:start-directory-sector header))
         dir-sector (read-directory-sector f (:start-directory-sector header))]
