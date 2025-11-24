@@ -85,14 +85,17 @@
     (.position buffer 0)
     (.get buffer name)
     (let [len (read-u16! buffer)]
-      (String. name 0 (- len 2) "UTF-16LE"))))
+      (if (> len 0)
+        (String. name 0 (- len 2) "UTF-16LE")
+        (String.)))))
 
 (defn read-directory-entry-type! [^ByteBuffer buffer]
   (let [type (read-u8! buffer)]
     (case type
       1 :storage
       2 :stream
-      5 :root)))
+      5 :root
+      :unknown)))
 
 (defn read-directory-sector! [^FileChannel f sector]
   (let [buffer (ByteBuffer/allocate 128)
@@ -118,14 +121,27 @@
         (conj! entries entry)))
     (persistent! entries)))
 
+(def ENDOFCHAIN 0xFFFFFFFE)
+
+(defn read-directory-stream! [^FileChannel f fat start]
+  (let [entries (transient [])]
+    (loop [sector start]
+      (if (= sector ENDOFCHAIN)
+        (persistent! entries)
+        (do
+          (doseq [entry (read-directory-sector! f sector)]
+            (conj! entries entry))
+          (recur (nth fat sector)))))))
+
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
         f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))
         header (read-header! f)
         fat (read-fat f (:difat header))
-        ;directory-stream (read-directory-stream fat (:start-directory-sector header))
+        directory-stream (read-directory-stream! f fat (:start-directory-sector header))
         dir-sector (read-directory-sector! f (:start-directory-sector header))]
     (assoc header
            :fat fat
-           ;:directory directory-stream
-           :dir-sector dir-sector)))
+                                        ;:directory directory-stream
+           ;:dir-sector dir-sector
+           :dir directory-stream)))
