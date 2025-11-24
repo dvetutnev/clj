@@ -111,7 +111,13 @@
                                    :color (read-u8! buffer)
                                    :left (read-u32! buffer)
                                    :right (read-u32! buffer)
-                                   :child (read-u32! buffer)])]
+                                   :child (read-u32! buffer)
+                                   :start (do (shift-position! buffer (+ 16  ; CLSID
+                                                                         4   ; State bits
+                                                                         8   ; Creation time
+                                                                         8)) ; Modified time
+                                              (read-u32! buffer))
+                                   :size (read-u32! buffer)])]
         (conj! entries entry)))
     (persistent! entries)))
 
