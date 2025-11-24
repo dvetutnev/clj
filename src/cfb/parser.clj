@@ -94,7 +94,7 @@
       2 :stream
       5 :root)))
 
-(defn read-directory-sector [^FileChannel f sector]
+(defn read-directory-sector! [^FileChannel f sector]
   (let [buffer (ByteBuffer/allocate 128)
         entries (transient [])]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
@@ -124,7 +124,7 @@
         header (read-header! f)
         fat (read-fat f (:difat header))
         ;directory-stream (read-directory-stream fat (:start-directory-sector header))
-        dir-sector (read-directory-sector f (:start-directory-sector header))]
+        dir-sector (read-directory-sector! f (:start-directory-sector header))]
     (assoc header
            :fat fat
            ;:directory directory-stream
