@@ -97,12 +97,14 @@
       5 :root
       :unknown)))
 
+(def DirectoryEntrySize 128)
+
 (defn read-directory-sector! [^FileChannel f sector]
   (let [buffer (ByteBuffer/allocate 128)
         entries (transient [])]
     (.order buffer ByteOrder/LITTLE_ENDIAN)
     (.position f (sector->offset sector))
-    (doseq [_ (range 4)]
+    (doseq [_ (range (/ SectorSize DirectoryEntrySize))]
       (.clear buffer)
       (.read f buffer)
       (.rewind buffer)
@@ -112,9 +114,9 @@
                                    :left (read-u32! buffer)
                                    :right (read-u32! buffer)
                                    :child (read-u32! buffer)
-                                   :start (do (shift-position! buffer (+ 16  ; CLSID
-                                                                         4   ; State bits
-                                                                         8   ; Creation time
+                                   :start (do (shift-position! buffer (+ 16 ; CLSID
+                                                                         4 ; State bits
+                                                                         8 ; Creation time
                                                                          8)) ; Modified time
                                               (read-u32! buffer))
                                    :size (read-u32! buffer)])]
