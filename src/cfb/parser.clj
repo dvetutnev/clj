@@ -138,10 +138,7 @@
         f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))
         header (read-header! f)
         fat (read-fat f (:difat header))
-        directory-stream (read-directory-stream! f fat (:start-directory-sector header))
-        dir-sector (read-directory-sector! f (:start-directory-sector header))]
+        directory-stream (read-directory-stream! f fat (:start-directory-sector header))]
     (assoc header
            :fat fat
-                                        ;:directory directory-stream
-           ;:dir-sector dir-sector
            :dir directory-stream)))
