@@ -6,6 +6,10 @@
 (def SectorSize 512)
 (def HeaderSize 512)
 (def u32size 4)
+(def DirectoryEntrySize 128)
+
+(def ENDOFCHAIN 0xFFFFFFFE)
+(def NOSTREAM 0xFFFFFFFF)
 
 (defn read-u8! [^ByteBuffer buffer]
   (-> buffer
@@ -97,8 +101,6 @@
       5 :root
       :unknown)))
 
-(def DirectoryEntrySize 128)
-
 (defn read-directory-sector! [^FileChannel f sector]
   (let [buffer (ByteBuffer/allocate 128)
         entries (transient [])]
@@ -123,8 +125,6 @@
         (conj! entries entry)))
     (persistent! entries)))
 
-(def ENDOFCHAIN 0xFFFFFFFE)
-
 (defn read-directory-stream! [^FileChannel f fat start]
   (let [entries (transient [])]
     (loop [sector start]
@@ -135,12 +135,25 @@
             (conj! entries entry))
           (recur (nth fat sector)))))))
 
+(defn parse-tree [directory-stream root-id]
+  (if (= root-id NOSTREAM)
+    {}
+    (let [obj (nth directory-stream root-id)
+          entry (if (= (:type obj) :storage)
+                  {:type :storage}
+                  (select-keys obj [:type :start :size]))]
+      (merge {(:name obj) entry}
+             (parse-tree directory-stream (:left obj))
+             (parse-tree directory-stream (:right obj))))))
+
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
         f (FileChannel/open p (into-array OpenOption [StandardOpenOption/READ]))
         header (read-header! f)
         fat (read-fat f (:difat header))
-        directory-stream (read-directory-stream! f fat (:start-directory-sector header))]
+        directory-stream (read-directory-stream! f fat (:start-directory-sector header))
+        dir-tree (parse-tree directory-stream 1)]
     (assoc header
            :fat fat
-           :dir directory-stream)))
+           :dir directory-stream
+           :tree dir-tree)))
