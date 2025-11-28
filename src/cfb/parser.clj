@@ -139,8 +139,9 @@
   (if (= root-id NOSTREAM)
     {}
     (let [obj (nth directory-stream root-id)
-          entry (if (= (:type obj) :storage)
-                  {:type :storage}
+          entry (if (or (= (:type obj) :storage)
+                        (= (:type obj) :root))
+                  (merge {:type :storage} (parse-tree directory-stream (:child obj)))
                   (select-keys obj [:type :start :size]))]
       (merge {(:name obj) entry}
              (parse-tree directory-stream (:left obj))
@@ -152,7 +153,7 @@
         header (read-header! f)
         fat (read-fat f (:difat header))
         directory-stream (read-directory-stream! f fat (:start-directory-sector header))
-        dir-tree (parse-tree directory-stream 1)]
+        dir-tree (parse-tree directory-stream 0)]
     (assoc header
            :fat fat
            :dir directory-stream
