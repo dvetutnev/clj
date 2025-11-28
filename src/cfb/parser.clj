@@ -135,17 +135,17 @@
             (conj! entries entry))
           (recur (nth fat sector)))))))
 
-(defn parse-tree [directory-stream root-id]
+(defn parse-directory-stream [directory-stream root-id]
   (if (= root-id NOSTREAM)
     {}
     (let [obj (nth directory-stream root-id)
           entry (if (or (= (:type obj) :storage)
                         (= (:type obj) :root))
-                  (merge {:type :storage} (parse-tree directory-stream (:child obj)))
+                  (merge {:type :storage} (parse-directory-stream directory-stream (:child obj)))
                   (select-keys obj [:type :start :size]))]
       (merge {(:name obj) entry}
-             (parse-tree directory-stream (:left obj))
-             (parse-tree directory-stream (:right obj))))))
+             (parse-directory-stream directory-stream (:left obj))
+             (parse-directory-stream directory-stream (:right obj))))))
 
 (defn open-cfb [^String path]
   (let [p (Paths/get path (into-array String []))
@@ -153,8 +153,8 @@
         header (read-header! f)
         fat (read-fat f (:difat header))
         directory-stream (read-directory-stream! f fat (:start-directory-sector header))
-        dir-tree (parse-tree directory-stream 0)]
+        directory (parse-directory-stream directory-stream 0)]
     (assoc header
            :fat fat
            :dir directory-stream
-           :tree dir-tree)))
+           :directory directory)))
